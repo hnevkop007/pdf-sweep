@@ -10,21 +10,13 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>pdfbox</artifactId>
-    <name>Profiles: Sweep PDF Box</name>
+    <artifactId>itext</artifactId>
     <packaging>pom</packaging>
+    <name>Profiles: Sweep itext</name>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>${pdf.box.version}</version>
-        </dependency>
-    </dependencies>
 
 </project>

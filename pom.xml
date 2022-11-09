@@ -4,14 +4,15 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>io.monster.profiles.sweep</groupId>
     <artifactId>pdf-box-example</artifactId>
     <version>${revision}</version>
-    <groupId>io.monster.profiles.sweep</groupId>
     <packaging>pom</packaging>
     <name>Profiles: Pdf Sweep Parent</name>
 
     <modules>
         <module>pdfbox</module>
+        <module>itext</module>
     </modules>
 
     <properties>
