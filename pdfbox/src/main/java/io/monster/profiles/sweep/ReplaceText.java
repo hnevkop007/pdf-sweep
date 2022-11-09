@@ -3,118 +3,141 @@ package io.monster.profiles.sweep;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.apache.pdfbox.contentstream.PDContentStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.contentstream.operator.Operator;
-import org.apache.pdfbox.contentstream.operator.OperatorName;
-import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdfwriter.ContentStreamWriter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDStream;
-import org.apache.pdfbox.pdmodel.graphics.PDXObject;
-import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.pdmodel.graphics.pattern.PDAbstractPattern;
-import org.apache.pdfbox.pdmodel.graphics.pattern.PDTilingPattern;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.util.Matrix;
+import org.apache.pdfbox.util.Vector;
 
 public final class ReplaceText {
-  /**
-   * Default constructor.
-   */
-  private ReplaceText() {
-    //example class should not be instantiated
-  }
 
   public static void main(String[] args) throws IOException {
-    if (args.length != 2) {
+    if (args.length != 1) {
       usage();
     } else {
-
-      File file = new File("/Users/phnevkov/Documents/GitHub/pdf-sweep/pdfbox/src/main/resources/ResumeReplace.pdf");
+      File file = new ReplaceText().getResourceFile("ResumeReplace.pdf");
       var document = PDDocument.load(file);
 
       if (document.isEncrypted()) {
         System.err.println("Error: Encrypted documents are not supported for this example.");
         System.exit(1);
       }
-      for (PDPage page : document.getPages()) {
-        List<Object> newTokens = createTokensWithoutText(page);
-        PDStream newContents = new PDStream(document);
-        writeTokensToStream(newContents, newTokens);
-        page.setContents(newContents);
-        processResources(page.getResources());
-      }
 
-      System.out.println(args[0] + " => "+ args[1]);
+      var doc1 = replaceTextProbe1(document, args[0]);
+      var doc2 = replaceTextProbe2(document, args[0],"");
+
       var timestamp = Instant.now().toString();
-      document.save( "ResumeReplace" +  timestamp +".pdf"  );
+      doc1.save("ResumeReplace-1-" + timestamp + ".pdf");
+      doc2.save("ResumeReplace-2-" + timestamp + ".pdf");
     }
   }
 
-  private static void processResources(PDResources resources) throws IOException {
-    for (COSName name : resources.getXObjectNames()) {
-      PDXObject xobject = resources.getXObject(name);
-      if (xobject instanceof PDFormXObject) {
-        PDFormXObject formXObject = (PDFormXObject) xobject;
-        writeTokensToStream(formXObject.getContentStream(), createTokensWithoutText(formXObject));
-        processResources(formXObject.getResources());
-      }
+
+  public static PDDocument replaceTextProbe1(PDDocument document, String searchString) throws IOException {
+    if (StringUtils.isEmpty(searchString)) {
+      return document;
     }
-    for (COSName name : resources.getPatternNames()) {
-      PDAbstractPattern pattern = resources.getPattern(name);
-      if (pattern instanceof PDTilingPattern) {
-        PDTilingPattern tilingPattern = (PDTilingPattern) pattern;
-        writeTokensToStream(tilingPattern.getContentStream(), createTokensWithoutText(tilingPattern));
-        processResources(tilingPattern.getResources());
-      }
+
+    for (PDPage page : document.getDocumentCatalog().getPages()) {
+
+      PdfContentStreamEditor editor = new PdfContentStreamEditor(document, page) {
+        final StringBuilder recentChars = new StringBuilder();
+        final List<String> TEXT_SHOWING_OPERATORS = Arrays.asList("Tj", "'", "\"", "TJ");
+
+        protected void showGlyph(Matrix textRenderingMatrix, PDFont font, int code, Vector displacement) throws IOException {
+          String string = font.toUnicode(code);
+          if (string != null) {
+            recentChars.append(string);
+          }
+
+          super.showGlyph(textRenderingMatrix, font, code, displacement);
+        }
+
+        protected void write(ContentStreamWriter contentStreamWriter, Operator operator, List<COSBase> operands) throws IOException {
+          String recentText = recentChars.toString();
+          recentChars.setLength(0);
+          String operatorString = operator.getName();
+
+          if (TEXT_SHOWING_OPERATORS.contains(operatorString) && searchString.equals(recentText)) {
+            return;
+          }
+
+          super.write(contentStreamWriter, operator, operands);
+        }
+      };
+      editor.processPage(page);
     }
+
+    return document;
   }
 
-  private static void writeTokensToStream(PDStream newContents, List<Object> newTokens) throws IOException {
-    try (OutputStream out = newContents.createOutputStream(COSName.FLATE_DECODE)) {
-      ContentStreamWriter writer = new ContentStreamWriter(out);
-      writer.writeTokens(newTokens);
-    }
-  }
+  public static PDDocument replaceTextProbe2(PDDocument document, String searchString, String replacement) throws IOException {
+    for (PDPage page : document.getDocumentCatalog().getPages()) {
+      PDFStreamParser parser = new PDFStreamParser(page);
+      parser.parse();
+      List tokens = parser.getTokens();
+      for (int j = 0; j < tokens.size(); j++) {
+        Object next = tokens.get(j);
 
-  private static List<Object> createTokensWithoutText(PDContentStream contentStream) throws IOException {
-    PDFStreamParser parser = new PDFStreamParser(contentStream);
-    Object token = parser.parseNextToken();
-    List<Object> newTokens = new ArrayList<>();
-    while (token != null) {
-      if (token instanceof Operator) {
-        Operator op = (Operator) token;
-        String opName = op.getName();
-        if (OperatorName.SHOW_TEXT_ADJUSTED.equals(opName) || OperatorName.SHOW_TEXT.equals(opName) || OperatorName.SHOW_TEXT_LINE.equals(opName)) {
-          // remove the argument to this operator
-          newTokens.remove(newTokens.size() - 1);
-
-          token = parser.parseNextToken();
-          continue;
-        } else if (OperatorName.SHOW_TEXT_LINE_AND_SPACE.equals(opName)) {
-          // remove the 3 arguments to this operator
-          newTokens.remove(newTokens.size() - 1);
-          newTokens.remove(newTokens.size() - 1);
-          newTokens.remove(newTokens.size() - 1);
-
-          token = parser.parseNextToken();
-          continue;
+        if (next instanceof Operator) {
+          Operator op = (Operator) next;
+          //Tj and TJ are the two operators that display strings in a PDF
+          if (op.getName().equals("Tj")) {
+            // Tj takes one operator and that is the string to display so lets update that operator
+            COSString previous = (COSString) tokens.get(j - 1);
+            String string = previous.getString();
+            string = string.replaceFirst(searchString, replacement);
+            previous.setValue(string.getBytes());
+          } else if (op.getName().equals("TJ")) {
+            COSArray previous = (COSArray) tokens.get(j - 1);
+            for (int k = 0; k < previous.size(); k++) {
+              Object arrElement = previous.getObject(k);
+              if (arrElement instanceof COSString) {
+                COSString cosString = (COSString) arrElement;
+                String string = cosString.getString();
+                string = StringUtils.replaceOnce(string, searchString, replacement);
+                cosString.setValue(string.getBytes());
+              }
+            }
+          }
         }
       }
-      newTokens.add(token);
-      token = parser.parseNextToken();
+      // now that the tokens are updated we will replace the page content stream.
+      PDStream updatedStream = new PDStream(document);
+      OutputStream out = updatedStream.createOutputStream();
+      ContentStreamWriter tokenWriter = new ContentStreamWriter(out);
+      tokenWriter.writeTokens(tokens);
+      page.setContents(updatedStream);
+      out.close();
     }
-    return newTokens;
+    return document;
   }
 
-  /**
-   * This will print the usage for this document.
-   */
   private static void usage() {
-    System.err.println("Usage: java  <input-pdf> <output-pdf>");
+    System.err.println("Usage: java  <text-to-erase>");
+  }
+
+  private File getResourceFile(final String fileName)
+  {
+    URL url = this.getClass()
+        .getClassLoader()
+        .getResource(fileName);
+
+    if(url == null) {
+      throw new IllegalArgumentException(fileName + " is not found");
+    }
+    return new File(url.getFile());
   }
 }
