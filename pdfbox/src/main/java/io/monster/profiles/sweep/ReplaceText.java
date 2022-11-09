@@ -27,7 +27,7 @@ public final class ReplaceText {
     if (args.length != 1) {
       usage();
     } else {
-      File file = new ReplaceText().getResourceFile("ResumeReplace.pdf");
+      File file = new ReplaceText().getResourceFile("Resume2.pdf");
       var document = PDDocument.load(file);
 
       if (document.isEncrypted()) {
@@ -39,11 +39,10 @@ public final class ReplaceText {
       var doc2 = replaceTextProbe2(document, args[0],"");
 
       var timestamp = Instant.now().toString();
-      doc1.save("ResumeReplace-1-" + timestamp + ".pdf");
-      doc2.save("ResumeReplace-2-" + timestamp + ".pdf");
+      doc1.save("ResumeReplace-pdfbox-1-" + timestamp + ".pdf");
+      doc2.save("ResumeReplace-pdfbox-2-" + timestamp + ".pdf");
     }
   }
-
 
   public static PDDocument replaceTextProbe1(PDDocument document, String searchString) throws IOException {
     if (StringUtils.isEmpty(searchString)) {
