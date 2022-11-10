@@ -1,10 +1,7 @@
 package io.monster.profiles.sweep;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -21,28 +18,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
 
-public final class ReplaceText {
-
-  public static void main(String[] args) throws IOException {
-    if (args.length != 1) {
-      usage();
-    } else {
-      File file = new ReplaceText().getResourceFile("Resume2.pdf");
-      var document = PDDocument.load(file);
-
-      if (document.isEncrypted()) {
-        System.err.println("Error: Encrypted documents are not supported for this example.");
-        System.exit(1);
-      }
-
-      var doc1 = replaceTextProbe1(document, args[0]);
-      var doc2 = replaceTextProbe2(document, args[0],"");
-
-      var timestamp = Instant.now().toString();
-      doc1.save("ResumeReplace-pdfbox-1-" + timestamp + ".pdf");
-      doc2.save("ResumeReplace-pdfbox-2-" + timestamp + ".pdf");
-    }
-  }
+public class ReplaceText {
 
   public static PDDocument replaceTextProbe1(PDDocument document, String searchString) throws IOException {
     if (StringUtils.isEmpty(searchString)) {
@@ -124,19 +100,4 @@ public final class ReplaceText {
     return document;
   }
 
-  private static void usage() {
-    System.err.println("Usage: java  <text-to-erase>");
-  }
-
-  private File getResourceFile(final String fileName)
-  {
-    URL url = this.getClass()
-        .getClassLoader()
-        .getResource(fileName);
-
-    if(url == null) {
-      throw new IllegalArgumentException(fileName + " is not found");
-    }
-    return new File(url.getFile());
-  }
 }

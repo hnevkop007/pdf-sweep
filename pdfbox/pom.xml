@@ -6,20 +6,19 @@
 
     <parent>
         <groupId>io.monster.profiles.sweep</groupId>
-        <artifactId>pdf-box-example</artifactId>
+        <artifactId>cleanup-pdf</artifactId>
         <version>${revision}</version>
     </parent>
 
     <artifactId>pdfbox</artifactId>
     <name>Profiles: Sweep PDF Box</name>
-    <packaging>pom</packaging>
-
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.21</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
