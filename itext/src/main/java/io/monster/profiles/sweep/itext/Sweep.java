@@ -22,7 +22,7 @@ public class Sweep {
       PdfPage page = document.getPage(location.getPageNumber() + 1);
       PdfCanvas pdfCanvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), page.getDocument());
       Canvas canvas = new Canvas(pdfCanvas, location.getRectangle());
-      canvas.add(new Paragraph("SECRET"));
+      canvas.add(new Paragraph("*********"));
     }
   }
 }

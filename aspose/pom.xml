@@ -2,17 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
     <parent>
-        <groupId>io.monster.profiles.sweep</groupId>
         <artifactId>cleanup</artifactId>
+        <groupId>io.monster.profiles.sweep</groupId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>pdfbox</artifactId>
-    <name>Profiles: Sweep PDF Box</name>
+    <modelVersion>4.0.0</modelVersion>
 
+    <artifactId>aspose</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -20,9 +23,10 @@
             <version>5.3.21</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>${pdf.box.version}</version>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-words</artifactId>
+            <version>22.5</version>
+            <classifier>jdk17</classifier>
         </dependency>
     </dependencies>
 

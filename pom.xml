@@ -12,14 +12,16 @@
     </parent>
 
     <groupId>io.monster.profiles.sweep</groupId>
-    <artifactId>cleanup-pdf</artifactId>
+    <artifactId>cleanup</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
-    <name>Profiles: Pdf Sweep Parent</name>
+    <name>Profiles: Text Obfuscation</name>
 
     <modules>
         <module>pdfbox</module>
         <module>itext</module>
+        <module>openpdf</module>
+        <module>aspose</module>
     </modules>
 
     <properties>

@@ -22,7 +22,7 @@ public class SweepTextApplication implements CommandLineRunner {
     if (args.length != 1) {
       usage();
     } else {
-      String path = new ClassPathResource("ResumeReplace.pdf").getPath();
+      String path = new ClassPathResource("Doctor_Resume.pdf").getPath();
       var timestamp = Instant.now().toString();
       PdfReader reader = new PdfReader(path);
       PdfWriter writer = new PdfWriter("ResumeReplace-sweep-" + timestamp + ".pdf");

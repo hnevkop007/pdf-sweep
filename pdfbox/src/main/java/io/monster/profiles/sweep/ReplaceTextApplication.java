@@ -23,7 +23,7 @@ public class ReplaceTextApplication implements CommandLineRunner {
     if (args.length != 1) {
       usage();
     } else {
-      Resource resource = new ClassPathResource("ResumeReplace.pdf");
+      Resource resource = new ClassPathResource("Demo_Pdf.pdf");
       File file = resource.getFile();
       var document = PDDocument.load(file);
       if (document.isEncrypted()) {
